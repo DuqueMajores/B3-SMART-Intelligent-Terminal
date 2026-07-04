@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account profile and balance",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Firebase Auth UID of the user" },
+        "email": { "type": "string", "format": "email", "description": "Email address" },
+        "name": { "type": "string", "description": "Display name" },
+        "balance": { "type": "number", "description": "Account available cash balance" }
+      },
+      "required": ["id", "email", "name", "balance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Stock buy or sell transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Transaction unique identifier" },
+        "ticker": { "type": "string", "description": "B3 ticker symbol" },
+        "type": { "type": "string", "enum": ["COMPRA", "VENDA"], "description": "Operation type" },
+        "quantity": { "type": "number", "description": "Quantity of shares" },
+        "price": { "type": "number", "description": "Average purchase/sale price" },
+        "date": { "type": "string", "format": "date", "description": "Transaction date" }
+      },
+      "required": ["id", "ticker", "type", "quantity", "price", "date"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "Stock price or change notification trigger",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Alert unique identifier" },
+        "ticker": { "type": "string", "description": "B3 ticker symbol" },
+        "type": { "type": "string", "enum": ["PRICE_ABOVE", "PRICE_BELOW", "PERCENT_CHANGE"], "description": "Trigger metric type" },
+        "value": { "type": "number", "description": "Trigger threshold value" },
+        "active": { "type": "boolean", "description": "Whether the alert is active" },
+        "triggeredAt": { "type": "string", "description": "Timestamp when alert was triggered" }
+      },
+      "required": ["id", "ticker", "type", "value", "active"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile collection indexed by auth UID"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User portfolio transaction records"
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "User active price alert rules"
+    }
+  }
+}

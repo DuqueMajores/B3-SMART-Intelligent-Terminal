@@ -1,0 +1,6 @@
+{
+  "name": "B3 Smart Analyst",
+  "description": "Plataforma profissional de análise inteligente e gestão de carteiras da Bolsa de Valores brasileira (B3) com IA, gráficos interativos e ferramentas técnicas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

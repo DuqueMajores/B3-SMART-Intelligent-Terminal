@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global safety net - Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'duque.majores@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 2. User Profiles
+    match /users/{userId} {
+      allow read, get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if isOwner(userId) 
+        && request.resource.data.id == userId
+        && request.resource.data.email is string
+        && request.resource.data.name is string
+        && request.resource.data.balance is number;
+      allow delete: if isOwner(userId);
+
+      // Sub-collections nested inside user document (Relational Master Gate)
+      // 3. Transactions
+      match /transactions/{transactionId} {
+        allow read, list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && isValidId(transactionId)
+          && request.resource.data.id == transactionId
+          && request.resource.data.ticker is string
+          && request.resource.data.type in ['COMPRA', 'VENDA']
+          && request.resource.data.quantity is number
+          && request.resource.data.price is number
+          && request.resource.data.date is string;
+        allow delete: if isOwner(userId);
+      }
+
+      // 4. Alerts
+      match /alerts/{alertId} {
+        allow read, list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && isValidId(alertId)
+          && request.resource.data.id == alertId
+          && request.resource.data.ticker is string
+          && request.resource.data.type in ['PRICE_ABOVE', 'PRICE_BELOW', 'PERCENT_CHANGE']
+          && request.resource.data.value is number
+          && request.resource.data.active is bool;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
